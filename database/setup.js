@@ -70,3 +70,27 @@ module.exports = {
   sequelize,
   Track
 };
+
+// Run setup if this file is executed directly
+if (require.main === module) {
+  const runSetup = async () => {
+    try {
+      console.log("Connecting to database...");
+      await sequelize.authenticate();
+      console.log("Connection established!");
+
+      console.log("Syncing models...");
+      await sequelize.sync({ force: true }); // force rebuilds the tables
+      console.log("Database synced successfully!");
+
+    } catch (error) {
+      console.error("Database setup error:", error);
+    } finally {
+      await sequelize.close();
+      console.log("Database connection closed.");
+    }
+  };
+
+  runSetup();
+}
+
