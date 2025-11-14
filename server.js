@@ -99,6 +99,84 @@ app.post('/api/tracks', async (req, res) => {
   }
 });
 
+// PUT /api/tracks/:id - Update an existing track
+app.put('/api/tracks/:id', async (req, res) => {
+  try {
+    const trackId = req.params.id;
+
+    const {
+      songTitle,
+      artistName,
+      albumName,
+      genre,
+      duration,
+      releaseYear
+    } = req.body;
+
+    const track = await Track.findByPk(trackId);
+
+    if (!track) {
+      return res.status(404).json({ error: `Track with id ${trackId} not found` });
+    }
+
+    const missingFields = [];
+    if (!songTitle) missingFields.push('songTitle');
+    if (!artistName) missingFields.push('artistName');
+    if (!albumName) missingFields.push('albumName');
+    if (!genre) missingFields.push('genre');
+    if (duration === undefined || duration === null) missingFields.push('duration');
+    if (releaseYear === undefined || releaseYear === null) missingFields.push('releaseYear');
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: 'Missing required fields for update',
+        missingFields
+      });
+    }
+
+    if (typeof duration !== 'number' || typeof releaseYear !== 'number') {
+      return res.status(400).json({
+        error: 'duration and releaseYear must be numbers'
+      });
+    }
+
+    // Apply update
+    await track.update({
+      songTitle,
+      artistName,
+      albumName,
+      genre,
+      duration,
+      releaseYear
+    });
+
+    return res.status(200).json(track);
+  } catch (error) {
+    console.error("Error updating track:", error);
+    res.status(500).json({ error: "Failed to update track" });
+  }
+});
+
+// DELETE /api/tracks/:id - Delete a track by ID
+app.delete('/api/tracks/:id', async (req, res) => {
+  try {
+    const trackId = req.params.id;
+
+    const deletedCount = await Track.destroy({
+      where: { trackId: trackId }
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ error: `Track with id ${trackId} not found` });
+    }
+
+    return res.status(200).json({ message: `Track with id ${trackId} deleted successfully` });
+  } catch (error) {
+    console.error("Error deleting track:", error);
+    res.status(500).json({ error: "Failed to delete track" });
+  }
+});
+
 
 const startServer = async () => {
   try {
