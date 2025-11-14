@@ -1,4 +1,7 @@
+// database/seed.js
+
 // Import database and model
+const { sequelize, Track } = require('./setup');
 
 // Seed data
 const sampleTracks = [
@@ -101,3 +104,26 @@ const sampleTracks = [
 ];
 
 // Seed database with sample data
+const seedDatabase = async () => {
+  try {
+    console.log("Connecting to database for seeding...");
+    await sequelize.authenticate();
+    console.log("Connection established!");
+
+    console.log("Seeding tracks table...");
+    await Track.bulkCreate(sampleTracks, { validate: true });
+    console.log("Sample tracks inserted successfully!");
+  } catch (error) {
+    console.error("Error seeding database:", error);
+  } finally {
+    await sequelize.close();
+    console.log("Database connection closed after seeding.");
+  }
+};
+
+// Only run seeding if this file is executed directly
+if (require.main === module) {
+  seedDatabase();
+}
+
+module.exports = { seedDatabase };
