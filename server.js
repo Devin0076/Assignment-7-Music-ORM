@@ -47,6 +47,57 @@ app.get('/api/tracks/:id', async (req, res) => {
   }
 });
 
+// Tracks API Endpoints
+
+// POST /api/tracks - Create a new track
+app.post('/api/tracks', async (req, res) => {
+  try {
+    const {
+      songTitle,
+      artistName,
+      albumName,
+      genre,
+      duration,
+      releaseYear
+    } = req.body;
+
+    // Basic validation for required fields
+    const missingFields = [];
+    if (!songTitle) missingFields.push('songTitle');
+    if (!artistName) missingFields.push('artistName');
+    if (!albumName) missingFields.push('albumName');
+    if (!genre) missingFields.push('genre');
+    if (duration === undefined || duration === null) missingFields.push('duration');
+    if (releaseYear === undefined || releaseYear === null) missingFields.push('releaseYear');
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        missingFields
+      });
+    }
+
+    if (typeof duration !== 'number' || typeof releaseYear !== 'number') {
+      return res.status(400).json({
+        error: 'duration and releaseYear must be numbers'
+      });
+    }
+
+    const newTrack = await Track.create({
+      songTitle,
+      artistName,
+      albumName,
+      genre,
+      duration,
+      releaseYear
+    });
+
+    return res.status(201).json(newTrack);
+  } catch (error) {
+    console.error("Error creating new track:", error);
+    res.status(500).json({ error: "Failed to create track" });
+  }
+});
 
 
 const startServer = async () => {
